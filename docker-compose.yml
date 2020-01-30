@@ -1,0 +1,35 @@
+---
+version: '3'
+services:
+  irrd:
+    container_name: irrd
+    restart: unless-stopped
+    build:
+      context: .
+    image: irrd
+    volumes:
+      - ./irrd.yaml:/etc/irrd.yaml
+    ports:
+      - 8080:8080
+      - 8043:8043
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: irrd_postgres
+    restart: unless-stopped
+    image: postgres:10.6
+    environment:
+      POSTGRES_PASSWORD: irrd
+      POSTGRES_USER: irrd
+      POSTGRES_DB: irrd
+    command: "
+      postgres
+        -c max_connections=400
+        -c work_mem=50MB
+        -c random_page_cost=1.0"
+    volumes:
+      - ./bootstrap.sql:/docker-entrypoint-initdb.d/bootstrap.sql
+      - ./postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
